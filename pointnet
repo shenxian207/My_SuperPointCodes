@@ -24,6 +24,46 @@ class STNkD(nn.Module):
     def __init__(self, nfeat, nf_conv, nf_fc, K=2, norm = 'batch', affine = True, n_group = 1):
         super(STNkD, self).__init__()
 
+        #………………………………………………………………………………………………重写
+        modules = []      #nf_conv=[64,64,128,128,256]
+        #i=0
+        modules.append(nn.Conv1d(nfeat,64,1))
+        modules.append(nn.BatchNorm1d(64))
+        modules.append(nn.ReLU(True))
+        #i=1
+        modules.append(nn.Conv1d(64,64,1))
+        modules.append(nn.BatchNorm1d(64))
+        modules.append(nn.ReLU(True))
+        #i=2
+        modules.append(nn.Conv1d(64,128,1))
+        modules.append(nn.BatchNorm1d(128))
+        modules.append(nn.ReLU(True))
+        #i=3
+        modules.append(nn.Conv1d(128,128,1))
+        modules.append(nn.BatchNorm1d(128))
+        modules.append(nn.ReLU(True))
+        #i=4
+        modules.append(nn.Conv1d(128,256,1))
+        modules.append(nn.BatchNorm1d(256))
+        modules.append(nn.ReLU(True))
+        self.convs=nn.Sequential(*modules)
+
+        modules = []   #nf_fc=[256,64,32]
+        #i=0
+        modules.append(nn.Linear(256,256))
+        modules.append(nn.BatchNorm1d(256))
+        modules.append(nn.ReLU(True))
+        #i=1
+        modules.append((nn.Linear(256,64)))
+        modules.append(nn.BatchNorm1d(64))
+        modules.append(nn.ReLU(True))
+        #i=2
+        modules.append((nn.Linear(64,32)))
+        modules.append(nn.BatchNorm1d(32))
+        modules.append(nn.ReLU(True))
+        self.fcs = nn.Sequential(*modules)
+#………………………………………………………………………………………………………………………………重写
+        """
         modules = []
         for i in range(len(nf_conv)):
             modules.append(nn.Conv1d(nf_conv[i-1] if i>0 else nfeat, nf_conv[i], 1))
@@ -47,7 +87,8 @@ class STNkD(nn.Module):
                  modules.append(nn.GroupNorm(n_group,nf_fc[i]))
             modules.append(nn.ReLU(True))
         self.fcs = nn.Sequential(*modules)
-
+        """
+        
         self.proj = nn.Linear(nf_fc[-1], K*K)
         nn.init.constant_(self.proj.weight, 0); nn.init.constant_(self.proj.bias, 0)
         self.eye = torch.eye(K).unsqueeze(0)
